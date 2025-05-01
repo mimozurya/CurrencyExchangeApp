@@ -3,8 +3,10 @@ package currency.exchange.controllers;
 import currency.exchange.dao.CurrencyDAO;
 import currency.exchange.models.Currency;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,5 +22,16 @@ public class CurrencyController {
     @GetMapping("/currencies")
     public List<Currency> getAllCurrencies() {
         return currencyDAO.selectAllCurrencies();
+    }
+
+    @GetMapping("/currency/{code}")
+    public Currency getCurrencyByCode(@PathVariable("code") String code) {
+        return currencyDAO.selectCurrencyByCode(code);
+    }
+
+    @PostMapping(path = "/currencies", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Currency> addCurrency(Currency currency) {
+        currencyDAO.saveCurrency(currency);
+        return new ResponseEntity<>(currencyDAO.selectCurrencyByCode(currency.getCode()), HttpStatus.CREATED);
     }
 }

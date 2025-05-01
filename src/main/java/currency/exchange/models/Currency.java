@@ -1,9 +1,18 @@
 package currency.exchange.models;
 
+import jakarta.validation.constraints.*;
+
 public class Currency {
     private int id;
+
+    @NotBlank(message = "Name should not be empty")
     private String name;
+
+    @NotBlank(message = "Code should not be empty and should be have 3 symbol")
+    @Min(3) @Max(3)
     private String code;
+
+    @NotBlank(message = "Sign should not be empty")
     private String sign;
 
     public Currency(int id, String name, String code, String sign) {
