@@ -4,6 +4,8 @@ import currency.exchange.components.SQLQuery;
 import currency.exchange.models.ExchangeRate;
 import currency.exchange.models.ExchangeRateWithConversion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -30,23 +32,39 @@ public class ExchangeRateDAO {
     }
 
     public ExchangeRate selectExchangeRateByCodes(String baseCode, String targetCode) {
-        return jdbcTemplate.queryForObject(SQLQuery.SELECT_EXCHANGE_RATE_BY_CODES.getQuery(),
-                new Object[] {baseCode, targetCode}, exchangeRateRowMapper);
+        try {
+            return jdbcTemplate.queryForObject(SQLQuery.SELECT_EXCHANGE_RATE_BY_CODES.getQuery(),
+                    new Object[] {baseCode, targetCode}, exchangeRateRowMapper);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     public void insertExchangeRate (String baseCode, String targetCode, String rate) {
-        jdbcTemplate.update("INSERT INTO exchangeRates(baseCurrencyId, targetCurrencyId, rate) VALUES (?, ?, ?)",
-                getIdByCode(baseCode), getIdByCode(targetCode), rate);
+        try {
+            jdbcTemplate.update("INSERT INTO exchangeRates(baseCurrencyId, targetCurrencyId, rate) VALUES (?, ?, ?)",
+                    getIdByCode(baseCode), getIdByCode(targetCode), rate);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateKeyException(e.getMessage());
+        }
     }
 
     public void updateExchangeRate (String baseCode, String targetCode, String rate) {
-        jdbcTemplate.update("UPDATE exchangeRates SET rate = ? WHERE baseCurrencyId = ? AND targetCurrencyId = ?",
-                rate, getIdByCode(baseCode), getIdByCode(targetCode));
+        try {
+            jdbcTemplate.update("UPDATE exchangeRates SET rate = ? WHERE baseCurrencyId = ? AND targetCurrencyId = ?",
+                    rate, getIdByCode(baseCode), getIdByCode(targetCode));
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateKeyException(e.getMessage());
+        }
     }
 
     public ExchangeRate selectExchangeRateWithValue (String baseCode, String targetCode, String amount) {
-        return jdbcTemplate.queryForObject(SQLQuery.SELECT_EXCHANGE_RATE_BY_CODES_WITH_VALUE.getQuery(),
-                new Object[] {amount, amount, baseCode, targetCode}, exchangeRateWithConversionRowMapper);
+        try {
+            return jdbcTemplate.queryForObject(SQLQuery.SELECT_EXCHANGE_RATE_BY_CODES_WITH_VALUE.getQuery(),
+                    new Object[] {amount, amount, baseCode, targetCode}, exchangeRateWithConversionRowMapper);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     private Integer getIdByCode(String code) {

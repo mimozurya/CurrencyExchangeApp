@@ -2,6 +2,8 @@ package currency.exchange.dao;
 
 import currency.exchange.models.Currency;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -22,12 +24,20 @@ public class CurrencyDAO {
     }
 
     public Currency selectCurrencyByCode(String code) {
-        return jdbcTemplate.query("SELECT * FROM currencies WHERE code=?", new Object[]{code},
-                        new BeanPropertyRowMapper<>(Currency.class)).stream().findAny().orElse(null);
+        try {
+            return jdbcTemplate.query("SELECT * FROM currencies WHERE code=?", new Object[]{code},
+                    new BeanPropertyRowMapper<>(Currency.class)).stream().findAny().orElse(null);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     public void saveCurrency(Currency currency) {
-        jdbcTemplate.update("INSERT INTO currencies(name, code, sign) VALUES (?, ?, ?)",
-                currency.getName(), currency.getCode(), currency.getSign());
+        try {
+            jdbcTemplate.update("INSERT INTO currencies(name, code, sign) VALUES (?, ?, ?)",
+                    currency.getName(), currency.getCode(), currency.getSign());
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateKeyException(e.getMessage());
+        }
     }
 }

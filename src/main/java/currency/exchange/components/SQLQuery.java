@@ -1,5 +1,10 @@
 package currency.exchange.components;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum SQLQuery {
     SELECT_ALL_EXCHANGE_RATES(
             """
@@ -72,11 +77,4 @@ public enum SQLQuery {
 
     private String query;
 
-    SQLQuery(String query) {
-        this.query = query;
-    }
-
-    public String getQuery() {
-        return query;
-    }
 }
