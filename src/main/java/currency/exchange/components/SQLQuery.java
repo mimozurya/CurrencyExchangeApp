@@ -73,7 +73,12 @@ public enum SQLQuery {
                     WHERE base_code = ? and target_code = ?
                     """
     ),
-    SELECT_ID_FROM_CURRENCIES("select id from currencies where code = ?");
+    INSERT_INTO_EXCHANGE_RATES("INSERT INTO exchangeRates(baseCurrencyId, targetCurrencyId, rate) VALUES (?, ?, ?)"),
+    UPDATE_EXCHANGE_RATES("UPDATE exchangeRates SET rate = ? WHERE baseCurrencyId = ? AND targetCurrencyId = ?"),
+    SELECT_ID_FROM_CURRENCIES("select id from currencies where code = ?"),
+    SELECT_ALL_CURRENCIES("SELECT id, code, name, sign FROM currencies"),
+    SELECT_CURRENCY_BY_CODE("SELECT id, code, name, sign FROM currencies WHERE code=?"),
+    INSERT_INTO_CURRENCIES("INSERT INTO currencies(name, code, sign) VALUES (?, ?, ?)");
 
     private String query;
 

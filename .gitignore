@@ -36,3 +36,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Frontend ###
+css
+js
+index.html
+launch-local-nginx.sh

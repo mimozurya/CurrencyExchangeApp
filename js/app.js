@@ -140,12 +140,13 @@ $(document).ready(function() {
         // send values to the server with a patch request
         $.ajax({
             url: `${host}/exchangeRate/${pair}`,
-            type: "PATCH",
+            type: "POST",
             contentType : "application/x-www-form-urlencoded",
             data: `rate=${exchangeRate}`,
             success: function() {
 
             },
+
             error: function(jqXHR, textStatus, errorThrown) {
                 const error = JSON.parse(jqXHR.responseText);
                 const toast = $('#api-error-toast');

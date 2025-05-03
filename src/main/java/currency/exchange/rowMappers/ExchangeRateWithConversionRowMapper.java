@@ -1,4 +1,4 @@
-package currency.exchange.RowMappers;
+package currency.exchange.rowMappers;
 
 import currency.exchange.models.ExchangeRateWithConversion;
 import org.springframework.jdbc.core.RowMapper;

@@ -1,4 +1,4 @@
-package currency.exchange.RowMappers;
+package currency.exchange.rowMappers;
 
 import currency.exchange.models.Currency;
 import currency.exchange.models.ExchangeRate;
