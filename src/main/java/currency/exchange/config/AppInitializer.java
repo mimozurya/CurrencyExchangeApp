@@ -1,11 +1,26 @@
 package currency.exchange.config;
 
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import org.springframework.web.filter.HiddenHttpMethodFilter;
+import jakarta.servlet.ServletRegistration;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
-public class AppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+@Configuration
+public class AppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer implements WebApplicationInitializer {
+    @Override
+    public void onStartup(ServletContext servletContext) {
+        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+        context.register(WebConfig.class);
+
+        DispatcherServlet servlet = new DispatcherServlet(context);
+        ServletRegistration.Dynamic registration = servletContext.addServlet("app", servlet);
+        registration.setLoadOnStartup(1);
+        registration.addMapping("/");
+    }
+
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return null;
@@ -21,14 +36,4 @@ public class AppInitializer extends AbstractAnnotationConfigDispatcherServletIni
         return new String[] {"/"};
     }
 
-    @Override
-    public void onStartup(ServletContext aServletContext) throws ServletException {
-        super.onStartup(aServletContext);
-        registerHiddenFieldFilter(aServletContext);
-    }
-
-    private void registerHiddenFieldFilter(ServletContext aContext) {
-        aContext.addFilter("hiddenHttpMethodFilter",
-                new HiddenHttpMethodFilter()).addMappingForUrlPatterns(null, true, "/*");
-    }
 }
