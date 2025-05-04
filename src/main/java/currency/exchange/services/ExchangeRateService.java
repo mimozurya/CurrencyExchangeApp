@@ -1,17 +1,17 @@
 package currency.exchange.services;
 
-import currency.exchange.components.Exceptions;
 import currency.exchange.dao.ExchangeRateDAO;
 import currency.exchange.models.ExchangeRate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-@Component
+@Service
 public class ExchangeRateService {
     private final ExchangeRateDAO exchangeRateDAO;
 
@@ -24,69 +24,105 @@ public class ExchangeRateService {
         return new ResponseEntity<>(exchangeRateDAO.selectAllExchangeRates(), HttpStatus.OK);
     }
 
-    public ResponseEntity<?> getExchangeRateByCode(String currencyPair) {
+    public ResponseEntity<ExchangeRate> getExchangeRateByCode(String currencyPair) {
         String baseCode = currencyPair.substring(0, 3).toUpperCase();
         String targetCode = currencyPair.substring(3).toUpperCase();
 
         try {
             if (baseCode.length() != 3 || targetCode.length() != 3) {
-                return ResponseEntity.badRequest().body(Exceptions.CODE_MUST_BE_THREE_CHARACTERS.getException());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Код валюты не состоит из 3 символовов"
+                );
             }
 
             return new ResponseEntity<>(exchangeRateDAO.selectExchangeRateByCodes(baseCode, targetCode), HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Exceptions.DATABASE_ERROR_IN_SERVICE.getException());
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка базы данных"
+            );
         }
     }
 
-    public ResponseEntity<?> saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, String rate) {
+    public ResponseEntity<ExchangeRate> saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, String rate) {
         try {
             if (checkForEmptinessOfValues(baseCurrencyCode, targetCurrencyCode, rate)) {
-                return ResponseEntity.badRequest().body(Exceptions.REQUIRED_FIELD_OMITTED.getException());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Пропущено необходимое поле"
+                );
             }
             if (checkWrongNumberOfCharacters(baseCurrencyCode, targetCurrencyCode)) {
-                return ResponseEntity.badRequest().body(Exceptions.CODE_MUST_BE_THREE_CHARACTERS.getException());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Код валюты не состоит из 3 символовов"
+                );
             }
 
             exchangeRateDAO.insertExchangeRate(baseCurrencyCode, targetCurrencyCode, rate);
             return new ResponseEntity<>(exchangeRateDAO.selectExchangeRateByCodes(baseCurrencyCode, targetCurrencyCode), HttpStatus.CREATED);
         } catch (DuplicateKeyException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Exceptions.DATABASE_ERROR_IN_SERVICE.getException());
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Значение уже есть в базе данных"
+            );
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Exceptions.DATABASE_ERROR_IN_SERVICE.getException());
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка базы данных"
+            );
         }
     }
 
-    public ResponseEntity<?> updateExchangeRate(String currencyPair, String rate) {
+    public ResponseEntity<ExchangeRate> updateExchangeRate(String currencyPair, String rate) {
         String baseCode = currencyPair.substring(0, 3).toUpperCase();
         String targetCode = currencyPair.substring(3).toUpperCase();
 
         try {
             if (baseCode.length() != 3 || targetCode.length() != 3) {
-                return ResponseEntity.badRequest().body(Exceptions.CODE_MUST_BE_THREE_CHARACTERS.getException());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Код валюты не состоит из 3 символовов"
+                );
             }
 
             exchangeRateDAO.updateExchangeRate(baseCode, targetCode, rate);
             return new ResponseEntity<>(exchangeRateDAO.selectExchangeRateByCodes(baseCode, targetCode), HttpStatus.OK);
         } catch (DuplicateKeyException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Exceptions.DATABASE_ERROR_IN_SERVICE.getException());
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Значение уже есть в базе данных"
+            );
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Exceptions.DATABASE_ERROR_IN_SERVICE.getException());
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка базы данных"
+            );
         }
     }
 
     public ResponseEntity<?> getExchangeRateWithValue(String baseCurrencyCode, String targetCurrencyCode, String amount) {
         try {
             if (checkForEmptinessOfValues(baseCurrencyCode, targetCurrencyCode, amount)) {
-                return ResponseEntity.badRequest().body(Exceptions.REQUIRED_FIELD_OMITTED.getException());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Пропущено необходимое поле"
+                );
             }
             if (checkWrongNumberOfCharacters(baseCurrencyCode, targetCurrencyCode)) {
-                return ResponseEntity.badRequest().body(Exceptions.CODE_MUST_BE_THREE_CHARACTERS.getException());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Код валюты не состоит из 3 символовов"
+                );
             }
 
             return new ResponseEntity<>(exchangeRateDAO.calculateExchangeRateWithValue(baseCurrencyCode, targetCurrencyCode, amount), HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Exceptions.DATABASE_ERROR_IN_SERVICE.getException());
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка базы данных"
+            );
         }
     }
 
